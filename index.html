@@ -2,32 +2,93 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Seating Arrangement</title>
+  <title>Seating Arrangement | Ajeenkya DY Patil School of Engineering</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #f9f9f9, #eef3ff);
       text-align: center;
-      margin-top: 100px;
+      margin: 0;
+      padding: 0;
     }
-    input, button {
-      padding: 10px;
-      margin: 5px;
+
+    header {
+      background: #800000;
+      color: white;
+      padding: 15px 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+
+    header img {
+      height: 85px;
+    }
+
+    header h1 {
+      margin: 10px 0 0 0;
+      font-size: 28px;
+      font-weight: bold;
+      line-height: 1.4em;
+    }
+
+    .container {
+      margin-top: 60px;
+    }
+
+    input {
+      padding: 12px;
+      width: 260px;
+      border: 2px solid #800000;
+      border-radius: 8px;
       font-size: 16px;
     }
+
+    button {
+      padding: 12px 20px;
+      margin-left: 10px;
+      background: #800000;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #a00000;
+    }
+
     #output {
-      margin-top: 20px;
-      font-size: 18px;
+      margin-top: 30px;
+      font-size: 20px;
       font-weight: bold;
+      color: #333;
+      padding: 15px;
+      border-radius: 10px;
+      display: inline-block;
+      min-width: 320px;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
   </style>
 </head>
 <body>
 
-  <h2>Check Your Seating Arrangement</h2>
-  <input type="text" id="seatInput" placeholder="Enter Seat Number">
-  <button onclick="findSeat()">Submit</button>
+  <!-- Header with Logo -->
+  <header>
+    <img src="https://adypu.edu.in/wp-content/uploads/2020/09/ajeenkya-dy-patil-university-logo.png" alt="Ajeenkya DY Patil Logo">
+    <h1>Ajeenkya DY Patil<br>School of Engineering</h1>
+  </header>
 
-  <div id="output"></div>
+  <div class="container">
+    <h2>Seating Arrangement Portal</h2>
+    <p>Please enter your seat number to find your allocated room.</p>
+
+    <input type="text" id="seatInput" placeholder="e.g. 101">
+    <button onclick="findSeat()">Check</button>
+
+    <div id="output">Your seating details will appear here...</div>
+  </div>
 
   <script>
     async function findSeat() {
@@ -36,20 +97,24 @@
 
       if (!seatNo) {
         output.innerText = "⚠️ Please enter a seat number!";
+        output.style.color = "red";
         return;
       }
 
       try {
-     let response = await fetch(`https://seatingapp.onrender.com/get-seat?seat_number=${seatNo}`);
+        let response = await fetch(`/get-seat?seat_number=${seatNo}`);
         let data = await response.json();
 
         if (data.status === "success") {
           let seat = data.data;
+          output.style.color = "green";
           output.innerText = `✅ Seat ${seat.SeatNumber}: ${seat.Room} - Row ${seat.Row} - Bench ${seat.Bench}`;
         } else {
+          output.style.color = "red";
           output.innerText = "❌ Seat number not found!";
         }
       } catch (err) {
+        output.style.color = "red";
         output.innerText = "⚠️ Could not connect to server!";
       }
     }
@@ -57,4 +122,3 @@
 
 </body>
 </html>
-
