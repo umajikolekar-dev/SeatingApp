@@ -40,7 +40,7 @@
       }
 
       try {
-        let response = await fetch(`http://127.0.0.1:8000/get-seat?seat_number=${seatNo}`);
+     let response = await fetch(`https://seatingapp.onrender.com/get-seat?seat_number=${seatNo}`);
         let data = await response.json();
 
         if (data.status === "success") {
@@ -57,3 +57,4 @@
 
 </body>
 </html>
+
