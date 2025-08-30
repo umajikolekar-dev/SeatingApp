@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Seating Arrangement</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 100px;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
+    }
+    #output {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Check Your Seating Arrangement</h2>
+  <input type="text" id="seatInput" placeholder="Enter Seat Number">
+  <button onclick="findSeat()">Submit</button>
+
+  <div id="output"></div>
+
+  <script>
+    async function findSeat() {
+      let seatNo = document.getElementById("seatInput").value.trim();
+      let output = document.getElementById("output");
+
+      if (!seatNo) {
+        output.innerText = "⚠️ Please enter a seat number!";
+        return;
+      }
+
+      try {
+        let response = await fetch(`http://127.0.0.1:8000/get-seat?seat_number=${seatNo}`);
+        let data = await response.json();
+
+        if (data.status === "success") {
+          let seat = data.data;
+          output.innerText = `✅ Seat ${seat.SeatNumber}: ${seat.Room} - Row ${seat.Row} - Bench ${seat.Bench}`;
+        } else {
+          output.innerText = "❌ Seat number not found!";
+        }
+      } catch (err) {
+        output.innerText = "⚠️ Could not connect to server!";
+      }
+    }
+  </script>
+
+</body>
+</html>
