@@ -12,23 +12,19 @@ def home():
         return FileResponse(file_path)
     return JSONResponse({"status": "error", "message": "index.html not found"}, status_code=404)
 
-
 # Load Excel safely
 try:
     df = pd.read_excel("seating.xlsx")
-    df.columns = df.columns.str.strip()  # remove leading/trailing spaces
-    df.columns = df.columns.str.replace(r"\s+", "", regex=True)  # remove spaces inside column names
-    df.columns = df.columns.str.upper()  # make all uppercase for matching
+    df.columns = df.columns.str.strip()  # remove leading/trailing spaces in headers
 
-    print("✅ Columns loaded from Excel:", df.columns.tolist())
-
-    if "SEATNUMBER" in df.columns:
-        df["SEATNUMBER"] = (
-            df["SEATNUMBER"]
+    if "SeatNumber" in df.columns:
+        # Normalize SeatNumber column
+        df["SeatNumber"] = (
+            df["SeatNumber"]
             .astype(str)
-            .str.strip()
-            .str.upper()
-            .str.replace(r"\s+", "", regex=True)
+            .str.strip()  # remove spaces
+            .str.upper()  # make uppercase
+            .str.replace(r"\s+", "", regex=True)  # remove internal spaces
         )
     else:
         print("⚠️ Column 'SeatNumber' not found in Excel.")
@@ -36,33 +32,26 @@ except Exception as e:
     print("❌ Error loading Excel:", e)
     df = pd.DataFrame()
 
-
 @app.get("/get-seat")
 def get_seat(seat_number: str):
     if df.empty:
-        return {"message": "Excel file not loaded or empty."}
+        return {"status": "error", "message": "Excel file not loaded or empty"}
 
-    if "SEATNUMBER" not in df.columns:
-        return {"message": "Column 'SeatNumber' not found in Excel."}
+    if "SeatNumber" not in df.columns:
+        return {"status": "error", "message": "Column 'SeatNumber' not found in Excel"}
 
+    # Normalize the input exactly like the Excel column
     seat_number_clean = seat_number.strip().upper().replace(" ", "")
-    row = df[df["SEATNUMBER"] == seat_number_clean]
+
+    row = df[df["SeatNumber"] == seat_number_clean]
 
     if not row.empty:
-        data = row.iloc[0].to_dict()
-
-        # Automatically detect the room column (any of these variations)
-        possible_room_columns = ["ROOMNUMBER", "ROOMNO", "ROOM", "ROOM_NO"]
-        room_number = None
-        for key in data.keys():
-            if key.replace(" ", "").upper() in possible_room_columns:
-                room_number = data[key]
-                break
-
-        if not room_number:
-            room_number = "N/A"
-
-        return {"message": f"Room Number - {room_number}"}
-
+        return {"status": "success", "data": row.iloc[0].to_dict()}
     else:
-        return {"message": "Seat Number not found, Contact Control ROOM No - 127"}
+        # DEBUG MODE: print what seat numbers exist (first 10)
+        sample_seats = df["SeatNumber"].head(10).tolist()
+        return {
+            "status": "error",
+            "message": f"Seat number '{seat_number}' not found.",
+            "debug_sample": f"Here are some seat numbers from Excel: {sample_seats}",
+        }
