@@ -15,16 +15,15 @@ def home():
 # Load Excel safely
 try:
     df = pd.read_excel("seating.xlsx")
-    df.columns = df.columns.str.strip()  # remove leading/trailing spaces in headers
+    df.columns = df.columns.str.strip()  # remove extra spaces in headers
 
     if "SeatNumber" in df.columns:
-        # Normalize SeatNumber column
         df["SeatNumber"] = (
             df["SeatNumber"]
             .astype(str)
-            .str.strip()  # remove spaces
-            .str.upper()  # make uppercase
-            .str.replace(r"\s+", "", regex=True)  # remove internal spaces
+            .str.strip()
+            .str.upper()
+            .str.replace(r"\s+", "", regex=True)
         )
     else:
         print("⚠️ Column 'SeatNumber' not found in Excel.")
@@ -40,18 +39,23 @@ def get_seat(seat_number: str):
     if "SeatNumber" not in df.columns:
         return {"status": "error", "message": "Column 'SeatNumber' not found in Excel"}
 
-    # Normalize the input exactly like the Excel column
     seat_number_clean = seat_number.strip().upper().replace(" ", "")
-
     row = df[df["SeatNumber"] == seat_number_clean]
 
     if not row.empty:
-        return {"status": "success", "data": row.iloc[0].to_dict()}
+        data = row.iloc[0].to_dict()
+        # Rename column key if it’s “RoomNumber” → show as “Room number”
+        formatted_data = {}
+        for key, value in data.items():
+            if key.lower() == "roomnumber":
+                formatted_data["Room number"] = value
+            else:
+                formatted_data[key] = value
+
+        return {"status": "success", "data": formatted_data}
+
     else:
-        # DEBUG MODE: print what seat numbers exist (first 10)
-        sample_seats = df["SeatNumber"].head(10).tolist()
         return {
             "status": "error",
-            "message": f"Seat number '{seat_number}' not found.",
-            "debug_sample": f"Here are some seat numbers from Excel: {sample_seats}",
+            "message": f"Seat number '{seat_number}' not found. Please contact CONTROL ROOM (Room Number - 127) immediately.",
         }
