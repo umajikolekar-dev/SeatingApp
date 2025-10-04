@@ -12,6 +12,7 @@ def home():
         return FileResponse(file_path)
     return JSONResponse({"status": "error", "message": "index.html not found"}, status_code=404)
 
+
 # Load Excel safely
 try:
     df = pd.read_excel("seating.xlsx")
@@ -31,31 +32,24 @@ except Exception as e:
     print("❌ Error loading Excel:", e)
     df = pd.DataFrame()
 
+
 @app.get("/get-seat")
 def get_seat(seat_number: str):
     if df.empty:
-        return {"status": "error", "message": "Excel file not loaded or empty"}
+        return {"message": "Excel file not loaded or empty."}
 
     if "SeatNumber" not in df.columns:
-        return {"status": "error", "message": "Column 'SeatNumber' not found in Excel"}
+        return {"message": "Column 'SeatNumber' not found in Excel."}
 
     seat_number_clean = seat_number.strip().upper().replace(" ", "")
     row = df[df["SeatNumber"] == seat_number_clean]
 
     if not row.empty:
         data = row.iloc[0].to_dict()
-        # Rename column key if it’s “RoomNumber” → show as “Room number”
-        formatted_data = {}
-        for key, value in data.items():
-            if key.lower() == "roomnumber":
-                formatted_data["Room number"] = value
-            else:
-                formatted_data[key] = value
+        # Find the correct column name for room number (case-insensitive)
+        room_key = next((k for k in data.keys() if k.lower() == "roomnumber"), None)
+        room_number = data.get(room_key, "N/A") if room_key else "N/A"
 
-        return {"status": "success", "data": formatted_data}
-
+        return {"message": f"Room Number - {room_number}"}
     else:
-        return {
-            "status": "error",
-            "message": f"Seat number '{seat_number}' not found. Please contact CONTROL ROOM (Room Number - 127) immediately.",
-        }
+        return {"message": "Seat Number not found, Contact Control ROOM No - 127"}
